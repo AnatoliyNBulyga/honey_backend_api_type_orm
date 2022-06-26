@@ -1,7 +1,8 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import Post from './posts.entity';
+import { PostNotFoundExcaption } from './excaptions/post-not-found.excaption';
 
 @Injectable()
 export class PostsService {
@@ -27,7 +28,7 @@ export class PostsService {
       return post;
     } catch (e) {
       console.log(e, 'e in get post by id service');
-      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException();
     }
   }
   async createPost(post) {
@@ -37,7 +38,7 @@ export class PostsService {
       return createdPost;
     } catch (e) {
       console.log(e, 'e in create post service');
-      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException();
     }
   }
   async updatePost(id, post) {
@@ -45,31 +46,25 @@ export class PostsService {
       await this.postRepository.update(id, post);
       const updatedPost = await this.postRepository.findOne({ where: { id } });
       if (!updatedPost) {
-        throw new HttpException(
-          'Post with this id not found',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new PostNotFoundExcaption(id);
       }
       return updatedPost;
     } catch (e) {
       console.log(e, 'e in update post service');
-      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException();
     }
   }
   async deletePost(id) {
     try {
       const candidate = await this.postRepository.findOne({ where: { id } });
       if (!candidate) {
-        throw new HttpException(
-          'Post with this id not found',
-          HttpStatus.NOT_FOUND,
-        );
+        throw new PostNotFoundExcaption(id);
       }
       await this.postRepository.delete(id);
       return candidate;
     } catch (e) {
       console.log(e, 'e in delete post service');
-      throw new HttpException('Bad request', HttpStatus.BAD_REQUEST);
+      throw new BadRequestException();
     }
   }
 }
